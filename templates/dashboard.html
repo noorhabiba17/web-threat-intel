@@ -1,0 +1,58 @@
+{% extends "base.html" %}{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+ <h2><i class="bi bi-speedometer2 text-info"></i> Dashboard</h2>
+ <a href="{{ url_for('scan') }}" class="btn btn-info"><i class="bi bi-plus-circle"></i> New Scan</a>
+</div>
+<div class="row g-3">
+ {% for ic,lab,val,col in [
+  ('search','Total scans',total,'info'),
+  ('shield-check','Safe',safe,'success'),
+  ('exclamation-triangle','Medium',med,'warning'),
+  ('bug','High risk',high,'danger')] %}
+ <div class="col-6 col-md-3"><div class="card wti-card p-3">
+   <div class="d-flex align-items-center gap-3">
+    <div class="stat-ico bg-{{col}}-subtle text-{{col}}"><i class="bi bi-{{ic}}"></i></div>
+    <div><div class="text-muted small">{{lab}}</div><div class="h3 mb-0">{{val}}</div></div>
+   </div></div></div>
+ {% endfor %}
+</div>
+
+<div class="row g-3 mt-1">
+ <div class="col-lg-7"><div class="card wti-card p-3"><h5>Activity (recent days)</h5><canvas id="activityChart" height="120"></canvas></div></div>
+ <div class="col-lg-5"><div class="card wti-card p-3"><h5>Scans by type</h5><canvas id="typeChart" height="120"></canvas></div></div>
+</div>
+
+<div class="card wti-card p-3 mt-3">
+ <div class="d-flex justify-content-between"><h5 class="mb-3">Recent activity</h5>
+  <a href="{{ url_for('history') }}" class="small">View all →</a></div>
+ <div class="table-responsive"><table class="table table-dark table-hover align-middle">
+  <thead><tr><th>When</th><th>Type</th><th>Input</th><th>Verdict</th><th>Risk</th></tr></thead>
+  <tbody>
+  {% for s in recent %}
+   <tr>
+    <td class="small text-muted">{{ s.created_at.strftime('%b %d %H:%M') }}</td>
+    <td><span class="badge text-bg-secondary">{{ s.scan_type.upper() }}</span></td>
+    <td class="text-truncate" style="max-width:380px">{{ s.input_text }}</td>
+    <td><span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[s.verdict] }}">{{ s.verdict }}</span></td>
+    <td>{{ s.risk_score }}%</td>
+   </tr>
+  {% else %}<tr><td colspan="5" class="text-center text-muted">No scans yet — run your first one!</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const chart = {{ chart|tojson }};
+new Chart(document.getElementById('activityChart'), {
+ type:'line', data:{labels:chart.labels, datasets:[{label:'Scans', data:chart.data, borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,.2)', tension:.3, fill:true}]},
+ options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}});
+const tc = {{ type_counts|tojson }};
+new Chart(document.getElementById('typeChart'), {
+ type:'bar', data:{labels:Object.keys(tc), datasets:[{label:'Scans', data:Object.values(tc), backgroundColor:['rgba(0,212,255,.6)','rgba(124,58,237,.6)','rgba(239,68,68,.6)'], borderColor:['#00d4ff','#7c3aed','#ef4444'], borderWidth:2, borderRadius:6}]},
+ options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}});
+
+// Update activity chart colors to match theme
+const activityChart = Chart.getChart('activityChart');
+if(activityChart){activityChart.data.datasets[0].borderColor='#00d4ff';activityChart.data.datasets[0].backgroundColor='rgba(0,212,255,.15)';activityChart.update();}
+</script>
+{% endblock %}

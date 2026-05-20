@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block content %}
+<h2><i class="bi bi-life-preserver text-info"></i> Recovery Center</h2>
+<p class="text-muted">If you've already clicked a phishing link or interacted with a scam, follow this checklist.</p>
+<div class="row g-3">
+{% for t,ic,items in [
+ ('Reset critical passwords','key',[
+  'Change passwords for email, banking, and any account that uses the same password.',
+  'Use a password manager to create unique 12+ character passwords.',
+  'Enable 2-factor authentication everywhere — prefer an authenticator app.']),
+ ('Clean your browser','browser-chrome',[
+  'Clear cache, cookies and site data for the affected site.',
+  'Remove any unknown browser extensions installed recently.',
+  'Sign out of all devices from your account security settings.']),
+ ('Scan your device','laptop',[
+  'Run a full scan with Windows Defender or Malwarebytes.',
+  'On mobile, uninstall apps you don\'t recognise and run Play Protect / iOS check.',
+  'Update your OS and browser to the latest version.']),
+ ('Notify and monitor','bell',[
+  'Contact your bank if any financial info was entered.',
+  'Report the message to your provider (Gmail, Outlook, telecom).',
+  'Watch credit/bank statements for the next 30 days.'])
+] %}
+<div class="col-md-6"><div class="card wti-card p-3 h-100">
+ <h5><i class="bi bi-{{ic}} text-info"></i> {{t}}</h5>
+ <ul>{% for i in items %}<li>{{i}}</li>{% endfor %}</ul>
+</div></div>
+{% endfor %}
+</div>
+{% endblock %}

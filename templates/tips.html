@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block content %}
+<h2><i class="bi bi-lightbulb text-info"></i> Security Awareness Tips</h2>
+<div class="row g-3 mt-2">
+{% for t,d in [
+ ('Verify the sender','Real companies use their own domains. "support@paypa1.com" is not PayPal.'),
+ ('Hover before you click','Always hover over links to see the real URL. On mobile, long-press.'),
+ ('Never share OTPs','No support agent will ever ask for an OTP. Treat it like a password.'),
+ ('Use a password manager','One strong unique password per site, generated automatically.'),
+ ('Enable 2FA','Even if your password leaks, attackers still need the second factor.'),
+ ('Beware urgency','"Act now or your account will be suspended" is a manipulation tactic.'),
+ ('Update everything','Most breaches use known, already-patched vulnerabilities.'),
+ ('Public Wi-Fi caution','Avoid sensitive logins on public networks. Use a trusted VPN.')
+] %}
+<div class="col-md-6 col-lg-4"><div class="card wti-card p-3 h-100">
+ <h6 class="text-info"><i class="bi bi-check2-circle"></i> {{t}}</h6><p class="small mb-0">{{d}}</p>
+</div></div>{% endfor %}
+</div>
+{% endblock %}

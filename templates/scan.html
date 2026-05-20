@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block content %}
+<h2><i class="bi bi-search text-info"></i> Threat Scan</h2>
+<p class="text-muted">Choose what you want to analyze.</p>
+<div class="row g-3">
+ <div class="col-lg-5">
+ <div class="card wti-card p-3">
+  <form method="post" id="scanForm">{{ form.hidden_tag() }}
+   <label class="form-label">Type</label>{{ form.scan_type(class="form-select mb-3", id="scan_type") }}
+   <label class="form-label">Content</label>{{ form.payload(class="form-control mb-3", rows=8, placeholder="Paste a URL, email body or SMS message…") }}
+   <label class="form-label">Note (optional)</label>{{ form.description(class="form-control mb-3") }}
+   <button class="btn btn-info w-100" id="scanBtn"><span class="spinner-border spinner-border-sm d-none" id="spin"></span> Scan now</button>
+  </form>
+ </div></div>
+ <div class="col-lg-7">
+  {% if result %}
+  <div class="card wti-card p-4">
+    <div class="d-flex justify-content-between align-items-start">
+     <h4 class="mb-1">Result <span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[result.verdict] }}">{{ result.verdict }}</span></h4>
+     {% if result.scan_id %}<a class="btn btn-sm btn-outline-info" href="{{ url_for('scan_pdf', sid=result.scan_id) }}"><i class="bi bi-file-earmark-pdf"></i> PDF</a>{% endif %}
+    </div>
+    <div class="my-3">
+     <div class="d-flex justify-content-between"><span>Risk score</span><strong>{{ result.risk_score }} / 100</strong></div>
+     <div class="progress" style="height:14px"><div class="progress-bar bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[result.verdict] }}" style="width:{{ result.risk_score }}%"></div></div>
+    </div>
+    <h6 class="mt-2"><i class="bi bi-list-check"></i> Why we flagged this</h6>
+    <ul>{% for r in result.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+    <h6 class="mt-2"><i class="bi bi-shield-check"></i> Suggestions</h6>
+    <ul>{% for r in result.suggestions %}<li>{{ r }}</li>{% endfor %}</ul>
+  </div>
+  {% else %}
+  <div class="card wti-card p-4 text-muted text-center">
+   <i class="bi bi-shield-shaded display-1 text-info"></i>
+   <p class="mt-3">Your result will appear here.</p>
+  </div>{% endif %}
+ </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>document.getElementById('scanForm').addEventListener('submit',()=>{document.getElementById('spin').classList.remove('d-none');document.getElementById('scanBtn').disabled=true;});</script>
+{% endblock %}

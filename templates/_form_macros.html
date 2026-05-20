@@ -1,0 +1,10 @@
+{% macro field(f, icon=None, type='text') %}
+<div class="mb-3">
+ <label class="form-label">{{ f.label.text }}</label>
+ <div class="input-group">
+  {% if icon %}<span class="input-group-text"><i class="bi bi-{{icon}}"></i></span>{% endif %}
+  {{ f(class="form-control", type=type) }}
+ </div>
+ {% for e in f.errors %}<div class="text-danger small mt-1">{{e}}</div>{% endfor %}
+</div>
+{% endmacro %}
