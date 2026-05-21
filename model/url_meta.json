@@ -1,0 +1,1 @@
+{"lr": {"acc": 1.0, "mean_proba": 0.515}, "rf": {"acc": 1.0, "mean_proba": 0.357}, "cnb": {"acc": 1.0, "mean_proba": 0.476}}

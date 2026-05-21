@@ -1,5 +1,5 @@
 """Web Threat Intelligence System — Flask entry point."""
-import os
+import os, json
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_file, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -19,6 +19,9 @@ def create_app():
     login_manager = LoginManager(app)
     login_manager.login_view = "login"
     login_manager.login_message_category = "warning"
+
+    @app.template_filter("fromjson")
+    def fromjson_filter(val): return json.loads(val) if val else {}
 
     @login_manager.user_loader
     def load_user(uid): return db.session.get(User, int(uid))
@@ -138,7 +141,8 @@ def create_app():
                      risk_score=result["risk_score"], verdict=result["verdict"],
                      reasons="\n".join(result["reasons"]),
                      suggestions="\n".join(result["suggestions"]),
-                     description=form.description.data)
+                     description=form.description.data,
+                     model_details=json.dumps(result.get("algorithms",{})))
             db.session.add(s); current_user.total_scans += 1; db.session.commit(); log(f"scan:{t}:{result['verdict']}")
             result["scan_id"] = s.id
         return render_template("scan.html", form=form, result=result)

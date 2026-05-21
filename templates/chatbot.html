@@ -2,6 +2,7 @@
 <h2><i class="bi bi-robot text-info"></i> Cybersecurity Chatbot</h2>
 <div class="card wti-card p-3">
  <div id="chat" class="chat-window mb-3"></div>
+ <div id="quickReplies" class="d-flex flex-wrap gap-2 mb-3"></div>
  <form id="chatForm" class="d-flex gap-2">
   <input id="msg" class="form-control" placeholder="Ask about phishing, passwords, 2FA…" autocomplete="off" required>
   <button class="btn btn-info"><i class="bi bi-send"></i></button>
@@ -13,6 +14,32 @@
 <script>
 const chat=document.getElementById('chat');
 function bubble(t,who){const d=document.createElement('div');d.className='bubble '+who;d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
+const questions=[
+ "What is phishing?",
+ "How to create a strong password?",
+ "What is 2FA?",
+ "How to spot a scam email?",
+ "What to do if I'm hacked?",
+ "Tips for safe browsing",
+ "What is ransomware?",
+ "How to stay safe on public Wi-Fi?"
+];
+const qr=document.getElementById('quickReplies');
+questions.forEach(q=>{
+ const btn=document.createElement('button');
+ btn.className='btn btn-sm btn-outline-info quick-q';
+ btn.textContent=q;
+ btn.addEventListener('click',()=>{
+  document.getElementById('msg').value=q;
+  document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+ });
+ qr.appendChild(btn);
+});
+async function send(m){
+ bubble(m,'me');
+ const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m})});
+ const j=await r.json();bubble(j.reply,'bot');
+}
 // Load chat history
 fetch('/api/chat/history').then(r=>r.json()).then(msgs=>{
  if(msgs.length===0){bubble("Hi! I'm your cybersecurity assistant. Ask me anything about staying safe online.","bot");return;}
@@ -20,9 +47,8 @@ fetch('/api/chat/history').then(r=>r.json()).then(msgs=>{
 });
 document.getElementById('chatForm').addEventListener('submit',async e=>{
  e.preventDefault();const m=document.getElementById('msg').value.trim();if(!m)return;
- bubble(m,'me');document.getElementById('msg').value='';
- const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m})});
- const j=await r.json();bubble(j.reply,'bot');
+ document.getElementById('msg').value='';
+ await send(m);
 });
 </script>
 {% endblock %}

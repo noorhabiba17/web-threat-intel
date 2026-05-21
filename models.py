@@ -35,6 +35,7 @@ class Scan(db.Model):
     reasons = db.Column(db.Text)                          # newline separated
     suggestions = db.Column(db.Text)
     description = db.Column(db.String(255))
+    model_details = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
 class ActivityLog(db.Model):

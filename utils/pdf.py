@@ -1,4 +1,5 @@
 """PDF report generation using ReportLab."""
+import json
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
@@ -42,6 +43,27 @@ def build_scan_pdf(scan, user):
     flow.append(Paragraph("<b>Security Suggestions</b>", styles["Heading3"]))
     for r in (scan.suggestions or "").split("\n"):
         if r.strip(): flow.append(Paragraph("• "+r.replace("<","&lt;"), styles["BodyText"]))
+    if scan.model_details:
+        flow.append(Spacer(1,10))
+        flow.append(Paragraph("<b>Algorithm Comparison</b>", styles["Heading3"]))
+        try:
+            algos = json.loads(scan.model_details)
+            algo_rows = [["Algorithm", "Risk", "Verdict", "Confidence"]]
+            for key, a in sorted(algos.items()):
+                conf = f"{float(a['prob'])*100:.1f}%" if 'prob' in a else "-"
+                algo_rows.append([a.get('label',key), f"{a.get('risk',0)}/100", a.get('verdict','-'), conf])
+            at = Table(algo_rows, colWidths=[140, 80, 100, 100])
+            at.setStyle(TableStyle([
+                ("BACKGROUND",(0,0),(-1,0), colors.HexColor("#0ea5e9")),
+                ("TEXTCOLOR",(0,0),(-1,0), colors.white),
+                ("GRID",(0,0),(-1,-1),0.5,colors.grey),
+                ("FONTSIZE",(0,0),(-1,-1),9),
+                ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+                ("LEFTPADDING",(0,0),(-1,-1),6),("RIGHTPADDING",(0,0),(-1,-1),6),
+                ("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4),
+            ]))
+            flow.append(at)
+        except Exception: pass
     if scan.description:
         flow.append(Spacer(1,10))
         flow.append(Paragraph("<b>Notes</b>", styles["Heading3"]))
