@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - wti_data:/app/instance
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production-please-1234567890}
+    restart: unless-stopped
+
+volumes:
+  wti_data:

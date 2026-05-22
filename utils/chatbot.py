@@ -1,5 +1,8 @@
 """Smart cybersecurity chatbot — keyword scoring + question type detection."""
-import re, random, math
+import re
+import random
+import math
+from typing import Any
 
 STOPWORDS = {"a","an","the","is","are","was","were","do","does","did","can",
              "could","will","would","shall","should","may","might","must",
@@ -15,16 +18,17 @@ STOPWORDS = {"a","an","the","is","are","was","were","do","does","did","can",
              "like","want","please","help","thanks","thank","what","which",
              "who","whom","this","that","these","those","am","are","was","were"}
 
-def extract_keywords(text):
+def extract_keywords(text: str) -> list[str]:
     """Extract meaningful keywords from text."""
     words = re.findall(r"[a-zA-Z][a-zA-Z0-9#+.-]{1,}", text.lower())
     return [w for w in words if w not in STOPWORDS and len(w) > 1]
 
-def tokenize_question(text):
+
+def tokenize_question(text: str) -> tuple[str, str]:
     """Detect question type and extract target."""
     t = text.lower().strip()
-    qtype = "statement"
-    target = ""
+    qtype: str = "statement"
+    target: str = ""
     patterns = [
         (r"^(what|who)\s+(is|are|was|were|does)\s+(.+?)\??$", "what_is", 3),
         (r"^(what|who)\s+(is|are|was)\s+(a|an|the)\s+(.+?)\??$", "what_is", 4),
@@ -554,7 +558,7 @@ DIRECT_MATCHES = [
     (["ransomware"], "malware"),
 ]
 
-def _direct_match(msg):
+def _direct_match(msg: str) -> Any:
     """Check if message matches any direct override pattern."""
     ml = msg.lower()
     for keywords, topic_name in DIRECT_MATCHES:
@@ -564,14 +568,14 @@ def _direct_match(msg):
                     return t
     return None
 
-def score_message(msg, topic):
+def score_message(msg: str, topic: dict[str, Any]) -> tuple[float, list[str]]:
     """Score a message against a topic's keywords.
     Prefer topics that match MORE distinct keywords over fewer high-weight ones.
     """
     msg_lower = msg.lower()
-    score = 0.0
-    matched = []
-    unique_count = 0
+    score: float = 0.0
+    matched: list[str] = []
+    unique_count: int = 0
     for kw, weight in topic["keywords"].items():
         if kw in msg_lower:
             score += weight
@@ -583,7 +587,7 @@ def score_message(msg, topic):
     return score, matched
 
 
-def reply(msg):
+def reply(msg: str) -> str:
     m = (msg or "").strip()
     if not m:
         return "I'm here to help with cybersecurity! Ask me anything about phishing, passwords, 2FA, malware, safe browsing, etc."

@@ -43,13 +43,13 @@
 {% block scripts %}
 <script>
 const chart = {{ chart|tojson }};
-new Chart(document.getElementById('activityChart'), {
- type:'line', data:{labels:chart.labels, datasets:[{label:'Scans', data:chart.data, borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,.2)', tension:.3, fill:true}]},
- options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}});
+ new Chart(document.getElementById('activityChart'), {
+  type:'line', data:{labels:chart.labels, datasets:[{label:'Scans', data:chart.data, borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,.2)', tension:.3, fill:true}]},
+  options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}});
 const tc = {{ type_counts|tojson }};
 new Chart(document.getElementById('typeChart'), {
- type:'bar', data:{labels:Object.keys(tc), datasets:[{label:'Scans', data:Object.values(tc), backgroundColor:['rgba(0,212,255,.6)','rgba(124,58,237,.6)','rgba(239,68,68,.6)'], borderColor:['#00d4ff','#7c3aed','#ef4444'], borderWidth:2, borderRadius:6}]},
- options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}});
+  type:'bar', data:{labels:Object.keys(tc), datasets:[{label:'Scans', data:Object.values(tc), backgroundColor:['rgba(0,212,255,.6)','rgba(124,58,237,.6)','rgba(239,68,68,.6)'], borderColor:['#00d4ff','#7c3aed','#ef4444'], borderWidth:2, borderRadius:6}]},
+  options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}});
 
 // Update activity chart colors to match theme
 const activityChart = Chart.getChart('activityChart');

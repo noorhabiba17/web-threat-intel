@@ -2,7 +2,7 @@
 <h2><i class="bi bi-robot text-info"></i> Cybersecurity Chatbot</h2>
 <div class="card wti-card p-3">
  <div id="chat" class="chat-window mb-3"></div>
- <div id="quickReplies" class="d-flex flex-wrap gap-2 mb-3"></div>
+ <div id="topicLabels" class="d-flex flex-wrap gap-2 mb-3"></div>
  <form id="chatForm" class="d-flex gap-2">
   <input id="msg" class="form-control" placeholder="Ask about phishing, passwords, 2FA…" autocomplete="off" required>
   <button class="btn btn-info"><i class="bi bi-send"></i></button>
@@ -11,44 +11,51 @@
 </div>
 {% endblock %}
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script>
+const csrf=document.querySelector('meta[name="csrf-token"]')?.content;
 const chat=document.getElementById('chat');
-function bubble(t,who){const d=document.createElement('div');d.className='bubble '+who;d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
-const questions=[
- "What is phishing?",
- "How to create a strong password?",
- "What is 2FA?",
- "How to spot a scam email?",
- "What to do if I'm hacked?",
- "Tips for safe browsing",
- "What is ransomware?",
- "How to stay safe on public Wi-Fi?"
-];
-const qr=document.getElementById('quickReplies');
-questions.forEach(q=>{
- const btn=document.createElement('button');
- btn.className='btn btn-sm btn-outline-info quick-q';
- btn.textContent=q;
- btn.addEventListener('click',()=>{
-  document.getElementById('msg').value=q;
-  document.getElementById('chatForm').dispatchEvent(new Event('submit'));
- });
- qr.appendChild(btn);
-});
-async function send(m){
- bubble(m,'me');
- const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m})});
- const j=await r.json();bubble(j.reply,'bot');
+function sanitize(html){const d=document.createElement('div');d.textContent=html;return d.innerHTML;}
+function bubble(t,who){
+ const d=document.createElement('div');d.className='bubble '+who;
+ d.innerHTML=marked.parse(sanitize(t),{breaks:true});
+ chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
 }
-// Load chat history
+const labels=[
+ {icon:"bi-shield-exclamation",text:"Phishing",msg:"What is phishing?"},
+ {icon:"bi-key",text:"Passwords",msg:"How to create strong passwords?"},
+ {icon:"bi-shield-lock",text:"2FA",msg:"What is two factor authentication?"},
+ {icon:"bi-bug",text:"Malware",msg:"How to remove malware?"},
+ {icon:"bi-globe2",text:"Safe Browsing",msg:"Safe browsing tips"},
+ {icon:"bi-incognito",text:"VPN",msg:"What is a VPN?"},
+ {icon:"bi-envelope",text:"Email Security",msg:"Email security tips"},
+ {icon:"bi-phone",text:"Mobile Security",msg:"How to secure my phone?"},
+ {icon:"bi-exclamation-triangle",text:"Hacked?",msg:"I got hacked what do I do?"},
+ {icon:"bi-lightbulb",text:"Tips",msg:"Cybersecurity tips"},
+ {icon:"bi-credit-card",text:"Identity Theft",msg:"What is identity theft?"},
+ {icon:"bi-wifi",text:"Public Wi-Fi",msg:"Is public wifi safe?"},
+];
+const container=document.getElementById('topicLabels');
+labels.forEach(l=>{
+ const btn=document.createElement('button');
+ btn.className='topic-label btn btn-sm';
+ btn.innerHTML='<i class="bi '+l.icon+'"></i> '+l.text;
+ btn.addEventListener('click',async ()=>{
+  bubble(l.msg,'me');
+  const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({message:l.msg})});
+  const j=await r.json();bubble(j.reply,'bot');
+ });
+ container.appendChild(btn);
+});
 fetch('/api/chat/history').then(r=>r.json()).then(msgs=>{
- if(msgs.length===0){bubble("Hi! I'm your cybersecurity assistant. Ask me anything about staying safe online.","bot");return;}
+ if(msgs.length===0){bubble("Hi! I'm your cybersecurity assistant. Ask me about anything staying safe online.","bot");return;}
  msgs.forEach(m=>{bubble(m.msg,'me');bubble(m.reply,'bot');});
 });
 document.getElementById('chatForm').addEventListener('submit',async e=>{
  e.preventDefault();const m=document.getElementById('msg').value.trim();if(!m)return;
- document.getElementById('msg').value='';
- await send(m);
+ bubble(m,'me');document.getElementById('msg').value='';
+ const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({message:m})});
+ const j=await r.json();bubble(j.reply,'bot');
 });
 </script>
 {% endblock %}

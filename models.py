@@ -1,3 +1,4 @@
+from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -20,10 +21,17 @@ class User(UserMixin, db.Model):
     logs = db.relationship("ActivityLog", backref="user", lazy=True, cascade="all, delete-orphan")
     chat_messages = db.relationship("ChatMessage", backref="user", lazy=True, cascade="all, delete-orphan")
 
-    def set_password(self, pw): self.password_hash = generate_password_hash(pw)
-    def check_password(self, pw): return check_password_hash(self.password_hash, pw)
-    def set_answer(self, a): self.security_answer_hash = generate_password_hash(a.lower().strip())
-    def check_answer(self, a): return check_password_hash(self.security_answer_hash, a.lower().strip())
+    def set_password(self, pw: str) -> None:
+        self.password_hash = generate_password_hash(pw)
+
+    def check_password(self, pw: str) -> bool:
+        return check_password_hash(self.password_hash, pw)
+
+    def set_answer(self, a: str) -> None:
+        self.security_answer_hash = generate_password_hash(a.lower().strip())
+
+    def check_answer(self, a: str) -> bool:
+        return check_password_hash(self.security_answer_hash, a.lower().strip())
 
 class Scan(db.Model):
     id = db.Column(db.Integer, primary_key=True)

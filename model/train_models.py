@@ -4,11 +4,16 @@ URL phishing and text spam detection. Uses a synthetic seed dataset so the
 project works out-of-the-box; replace SEED_* with real CSVs (e.g., PhishTank,
 SMS Spam Collection) for production-grade accuracy.
 """
-import os, random, json, joblib
+import os, random, json, logging
+from typing import Any
+
+import joblib
+
+logger = logging.getLogger(__name__)
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import ComplementNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline  # noqa: F401  # kept for documentation
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
@@ -68,39 +73,27 @@ SPAM_TXT = [
  "Free Netflix subscription forever! Visit http://netfli-x.tk",
 ]
 
-CLF_MAP = {
-    "lr": LogisticRegression(max_iter=1000, class_weight="balanced"),
-    "rf": RandomForestClassifier(n_estimators=150, max_depth=12, class_weight="balanced", random_state=42),
-    "cnb": ComplementNB(),
-}
-
-def train_pair(X, y, name):
+def train_pair(X: list[str], y: list[int], name: str) -> None:
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
-    vec = TfidfVectorizer(ngram_range=(1,3), min_df=1, sublinear_tf=True,
-                          analyzer="char_wb" if name=="url" else "word")
-    Xtr_v = vec.fit_transform(Xtr); Xte_v = vec.transform(Xte)
-    results = {}
-    for key, clf in CLF_MAP.items():
-        clf.fit(Xtr_v, ytr)
-        acc = accuracy_score(yte, clf.predict(Xte_v))
-        proba = clf.predict_proba(Xte_v)[:, 1].mean() if hasattr(clf, "predict_proba") else 0.0
-        joblib.dump(clf, os.path.join(HERE, f"{name}_{key}.pkl"))
-        results[key] = {"acc": round(acc, 3), "mean_proba": round(float(proba), 3)}
-        print(f"  [{key}] acc={acc:.3f}")
+    vec = TfidfVectorizer(ngram_range=(1, 3), min_df=1, sublinear_tf=True, analyzer="char_wb" if name == "url" else "word")
+    Xtr_v = vec.fit_transform(Xtr)
+    Xte_v = vec.transform(Xte)
+    lr = LogisticRegression(max_iter=1000, class_weight="balanced").fit(Xtr_v, ytr)
+    nb = MultinomialNB().fit(Xtr_v, ytr)
+    logger.info("%s] LR acc=%.3f  NB acc=%.3f", name, accuracy_score(yte, lr.predict(Xte_v)), accuracy_score(yte, nb.predict(Xte_v)))
     joblib.dump(vec, os.path.join(HERE, f"{name}_vec.pkl"))
-    with open(os.path.join(HERE, f"{name}_meta.json"), "w") as f:
-        json.dump(results, f)
+    joblib.dump(lr, os.path.join(HERE, f"{name}_clf.pkl"))
 
-def main():
-    print("Training URL models…")
+
+def main() -> None:
     X_url = SAFE_URLS + PHISH_URLS
-    y_url = [0]*len(SAFE_URLS) + [1]*len(PHISH_URLS)
+    y_url = [0] * len(SAFE_URLS) + [1] * len(PHISH_URLS)
     train_pair(X_url, y_url, "url")
     print("\nTraining text models…")
     X_txt = SAFE_TXT + SPAM_TXT
-    y_txt = [0]*len(SAFE_TXT) + [1]*len(SPAM_TXT)
+    y_txt = [0] * len(SAFE_TXT) + [1] * len(SPAM_TXT)
     train_pair(X_txt, y_txt, "txt")
-    print("\nModels saved to", HERE)
+    logger.info("Models saved to %s", HERE)
 
 if __name__ == "__main__":
     main()
