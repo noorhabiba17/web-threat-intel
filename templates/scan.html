@@ -13,7 +13,7 @@
  </div></div>
  <div class="col-lg-7">
   {% if result %}
-  <div class="card wti-card p-4">
+  <div class="card wti-card p-4 mb-3">
     <div class="d-flex justify-content-between align-items-start">
      <h4 class="mb-1">Result <span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[result.verdict] }}">{{ result.verdict }}</span></h4>
      {% if result.scan_id %}<a class="btn btn-sm btn-outline-info" href="{{ url_for('scan_pdf', sid=result.scan_id) }}"><i class="bi bi-file-earmark-pdf"></i> PDF</a>{% endif %}
@@ -27,6 +27,29 @@
     <h6 class="mt-2"><i class="bi bi-shield-check"></i> Suggestions</h6>
     <ul>{% for r in result.suggestions %}<li>{{ r }}</li>{% endfor %}</ul>
   </div>
+  {% if result.algorithms and result.algorithms|length > 0 %}
+  <div class="card wti-card p-4">
+   <h5 class="mb-3"><i class="bi bi-cpu"></i> Algorithm Comparison</h5>
+   <p class="text-muted small mb-3">Best model: <strong class="text-info">{{ result.best_algorithm }}</strong></p>
+   {% set algo_order = ['lr','rf','cnb'] %}
+   {% for key in algo_order %}
+    {% set a = result.algorithms.get(key) %}
+    {% if a %}
+    <div class="border rounded p-3 mb-2 {% if a.label == result.best_algorithm %}border-info{% endif %}">
+     <div class="d-flex justify-content-between align-items-center">
+      <strong>{{ a.label }}</strong>
+      <span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[a.verdict] }}">{{ a.verdict }}</span>
+     </div>
+     <div class="d-flex justify-content-between small text-muted mt-1">
+      <span>Risk: {{ a.risk }} / 100</span>
+      <span>Confidence: {{ (a.prob * 100)|round(1) }}%</span>
+     </div>
+     <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[a.verdict] }}" style="width:{{ a.risk }}%"></div></div>
+    </div>
+    {% endif %}
+   {% endfor %}
+  </div>
+  {% endif %}
   {% else %}
   <div class="card wti-card p-4 text-muted text-center">
    <i class="bi bi-shield-shaded display-1 text-info"></i>

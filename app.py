@@ -1,5 +1,6 @@
 """Web Threat Intelligence System — Flask entry point."""
 import os
+import json
 import logging
 from datetime import datetime
 from typing import Any, Optional
@@ -36,6 +37,9 @@ def create_app() -> Flask:
     login_manager = LoginManager(app)
     login_manager.login_view = "login"
     login_manager.login_message_category = "warning"
+
+    @app.template_filter("fromjson")
+    def fromjson_filter(val): return json.loads(val) if val else {}
 
     @login_manager.user_loader
     def load_user(uid: str) -> Optional[User]:
@@ -186,7 +190,8 @@ def create_app() -> Flask:
                      risk_score=result["risk_score"], verdict=result["verdict"],
                      reasons="\n".join(result["reasons"]),
                      suggestions="\n".join(result["suggestions"]),
-                     description=form.description.data)
+                     description=form.description.data,
+                     model_details=json.dumps(result.get("algorithms",{})))
             db.session.add(s)
             current_user.total_scans = Scan.query.filter_by(user_id=current_user.id).count()
             db.session.commit()

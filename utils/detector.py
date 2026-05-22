@@ -1,11 +1,12 @@
 """
-Hybrid threat detector: ML (TF-IDF + LogisticRegression / NaiveBayes) +
-hand-crafted heuristic features. Trained on a synthetic seed dataset at first
-boot — see model/train_models.py for retraining on real data.
+Hybrid threat detector: 3 ML models (TF-IDF + LogisticRegression / RandomForest /
+ComplementNB) + hand-crafted heuristic features. Runs all three models, shows
+individual results, and picks the best verdict by majority vote.
 """
 import os
 import re
-import math  # noqa: F401  # kept for potential future heuristics
+import math
+import json
 import joblib
 import ipaddress
 from typing import Any, Optional

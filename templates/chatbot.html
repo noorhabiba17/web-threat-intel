@@ -2,6 +2,7 @@
 <h2><i class="bi bi-robot text-info"></i> Cybersecurity Chatbot</h2>
 <div class="card wti-card p-3">
  <div id="chat" class="chat-window mb-3"></div>
+ <div id="topicLabels" class="d-flex flex-wrap gap-2 mb-3"></div>
  <form id="chatForm" class="d-flex gap-2">
   <input id="msg" class="form-control" placeholder="Ask about phishing, passwords, 2FA…" autocomplete="off" required>
   <button class="btn btn-info"><i class="bi bi-send"></i></button>
@@ -20,8 +21,34 @@ function bubble(t,who){
  d.innerHTML=marked.parse(sanitize(t),{breaks:true});
  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
 }
+const labels=[
+ {icon:"bi-shield-exclamation",text:"Phishing",msg:"What is phishing?"},
+ {icon:"bi-key",text:"Passwords",msg:"How to create strong passwords?"},
+ {icon:"bi-shield-lock",text:"2FA",msg:"What is two factor authentication?"},
+ {icon:"bi-bug",text:"Malware",msg:"How to remove malware?"},
+ {icon:"bi-globe2",text:"Safe Browsing",msg:"Safe browsing tips"},
+ {icon:"bi-incognito",text:"VPN",msg:"What is a VPN?"},
+ {icon:"bi-envelope",text:"Email Security",msg:"Email security tips"},
+ {icon:"bi-phone",text:"Mobile Security",msg:"How to secure my phone?"},
+ {icon:"bi-exclamation-triangle",text:"Hacked?",msg:"I got hacked what do I do?"},
+ {icon:"bi-lightbulb",text:"Tips",msg:"Cybersecurity tips"},
+ {icon:"bi-credit-card",text:"Identity Theft",msg:"What is identity theft?"},
+ {icon:"bi-wifi",text:"Public Wi-Fi",msg:"Is public wifi safe?"},
+];
+const container=document.getElementById('topicLabels');
+labels.forEach(l=>{
+ const btn=document.createElement('button');
+ btn.className='topic-label btn btn-sm';
+ btn.innerHTML='<i class="bi '+l.icon+'"></i> '+l.text;
+ btn.addEventListener('click',async ()=>{
+  bubble(l.msg,'me');
+  const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({message:l.msg})});
+  const j=await r.json();bubble(j.reply,'bot');
+ });
+ container.appendChild(btn);
+});
 fetch('/api/chat/history').then(r=>r.json()).then(msgs=>{
- if(msgs.length===0){bubble("Hi! I'm your cybersecurity assistant. Ask me anything about staying safe online.","bot");return;}
+ if(msgs.length===0){bubble("Hi! I'm your cybersecurity assistant. Ask me about anything staying safe online.","bot");return;}
  msgs.forEach(m=>{bubble(m.msg,'me');bubble(m.reply,'bot');});
 });
 document.getElementById('chatForm').addEventListener('submit',async e=>{

@@ -1,11 +1,12 @@
 """
-Train TF-IDF + (LogisticRegression, MultinomialNB) models for URL phishing
-and text spam detection. Uses a synthetic seed dataset so the project works
-out-of-the-box; replace SEED_* with real CSVs (e.g., PhishTank, SMS Spam
-Collection) for production-grade accuracy.
+Train TF-IDF + (LogisticRegression, RandomForest, ComplementNB) models for
+URL phishing and text spam detection. Uses a synthetic seed dataset so the
+project works out-of-the-box; replace SEED_* with real CSVs (e.g., PhishTank,
+SMS Spam Collection) for production-grade accuracy.
 """
 import os
 import random
+import json
 import logging
 from typing import Any
 
@@ -82,7 +83,6 @@ def train_pair(X: list[str], y: list[int], name: str) -> None:
     Xte_v = vec.transform(Xte)
     lr = LogisticRegression(max_iter=1000, class_weight="balanced").fit(Xtr_v, ytr)
     nb = MultinomialNB().fit(Xtr_v, ytr)
-    # ensemble: average probs, pick LR as primary (saved) + log NB acc
     logger.info("%s] LR acc=%.3f  NB acc=%.3f", name, accuracy_score(yte, lr.predict(Xte_v)), accuracy_score(yte, nb.predict(Xte_v)))
     joblib.dump(vec, os.path.join(HERE, f"{name}_vec.pkl"))
     joblib.dump(lr, os.path.join(HERE, f"{name}_clf.pkl"))
@@ -92,6 +92,7 @@ def main() -> None:
     X_url = SAFE_URLS + PHISH_URLS
     y_url = [0] * len(SAFE_URLS) + [1] * len(PHISH_URLS)
     train_pair(X_url, y_url, "url")
+    print("\nTraining text models…")
     X_txt = SAFE_TXT + SPAM_TXT
     y_txt = [0] * len(SAFE_TXT) + [1] * len(SPAM_TXT)
     train_pair(X_txt, y_txt, "txt")

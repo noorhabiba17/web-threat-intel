@@ -342,6 +342,34 @@ a:hover { color: #67e8f9; }
 }
 .chat-window::after { content: ""; display: block; clear: both; }
 
+/* ===== TOPIC LABELS ===== */
+.topic-label {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  color: var(--cyan);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.topic-label:hover {
+  background: rgba(0, 212, 255, 0.18);
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.2);
+  transform: translateY(-1px);
+  color: #fff;
+}
+.topic-label:active {
+  transform: translateY(0) scale(0.96);
+}
+.topic-label i {
+  margin-right: 4px;
+  font-size: 0.75rem;
+}
+
 /* ===== PROGRESS ===== */
 .progress {
   background: rgba(30, 41, 59, 0.5);

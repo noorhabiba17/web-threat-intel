@@ -3,6 +3,8 @@
  <h2><i class="bi bi-search text-info"></i> Scan Details</h2>
  <a href="{{ url_for('history') }}" class="btn btn-outline-info btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
 </div>
+{% set algo_data = scan.model_details|fromjson if scan.model_details else {} %}
+{% set best_algo = algo_data.values()|selectattr('verdict')|list %}
 <div class="row g-3">
  <div class="col-lg-7">
   <div class="card wti-card p-4">
@@ -34,12 +36,33 @@
    <ul>{% for r in scan.reasons.split('\n') %}<li>{{ r }}</li>{% endfor %}</ul>
    {% else %}<p class="text-muted small">No specific indicators.</p>{% endif %}
   </div>
-  <div class="card wti-card p-4">
+  <div class="card wti-card p-4 mb-3">
    <h6><i class="bi bi-shield-check text-success"></i> Suggestions</h6>
    {% if scan.suggestions %}
    <ul>{% for r in scan.suggestions.split('\n') %}<li>{{ r }}</li>{% endfor %}</ul>
    {% else %}<p class="text-muted small">No suggestions.</p>{% endif %}
   </div>
+  {% if algo_data and algo_data|length > 0 %}
+  <div class="card wti-card p-4">
+   <h6><i class="bi bi-cpu text-info"></i> Algorithm Comparison</h6>
+   {% set algo_order = ['lr','rf','cnb'] %}
+   {% for key in algo_order %}
+    {% set a = algo_data.get(key) %}
+    {% if a %}
+    <div class="border rounded p-2 mb-2 small">
+     <div class="d-flex justify-content-between align-items-center">
+      <strong>{{ a.label }}</strong>
+      <span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[a.verdict] }}">{{ a.verdict }}</span>
+     </div>
+     <div class="d-flex justify-content-between text-muted mt-1">
+      <span>Risk: {{ a.risk }} / 100</span>
+      <span>Confidence: {{ (a.prob * 100)|round(1) }}%</span>
+     </div>
+    </div>
+    {% endif %}
+   {% endfor %}
+  </div>
+  {% endif %}
  </div>
 </div>
 {% endblock %}
