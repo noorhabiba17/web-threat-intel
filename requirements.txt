@@ -1,13 +1,15 @@
-Flask==3.0.3
-Flask-Login==0.6.3
-Flask-SQLAlchemy==3.1.1
-Flask-WTF==1.2.1
-WTForms==3.1.2
-email-validator==2.2.0
-Werkzeug==3.0.3
-scikit-learn==1.5.1
-numpy==2.0.1
-pandas==2.2.2
-joblib==1.4.2
-reportlab==4.2.2
-python-dotenv==1.0.1
+Flask==3.0.3 --hash=sha256:34e815dfaa43340d1d15a5c3a02b8476004037eb4840b34910c6e21679d288f3
+psycopg2-binary==2.9.12 --hash=sha256:f12ae41fcafadb39b2785e64a40f9db05d6de2ac114077457e0e7c597f3af980
+Flask-Login==0.6.3 --hash=sha256:849b25b82a436bf830a054e74214074af59097171562ab10bfa999e6b78aae5d
+Flask-SQLAlchemy==3.1.1 --hash=sha256:4ba4be7f419dc72f4efd8802d69974803c37259dd42f3913b0dcf75c9447e0a0
+Flask-WTF==1.2.1 --hash=sha256:fa6793f2fb7e812e0fe9743b282118e581fb1b6c45d414b8af05e659bd653287
+WTForms==3.1.2 --hash=sha256:bf831c042829c8cdbad74c27575098d541d039b1faa74c771545ecac916f2c07
+email-validator==2.2.0 --hash=sha256:561977c2d73ce3611850a06fa56b414621e0c8faa9d66f2611407d87465da631
+Werkzeug==3.0.3 --hash=sha256:fc9645dc43e03e4d630d23143a04a7f947a9a3b5727cd535fdfe155a17cc48c8
+scikit-learn==1.5.1 --hash=sha256:10e49170691514a94bb2e03787aa921b82dbc507a4ea1f20fd95557862c98dc1
+numpy==2.0.1 --hash=sha256:81b0893a39bc5b865b8bf89e9ad7807e16717f19868e9d234bdaf9b1f1393868
+pandas==2.2.2 --hash=sha256:ddf818e4e6c7c6f4f7c8a12709696d193976b591cc7dc50588d3d1a6b5dc8772
+joblib==1.4.2 --hash=sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6
+reportlab==4.2.2 --hash=sha256:927616931637e2f13e2ee3b3b6316d7a07803170e258621cff7d138bde17fbb5
+Flask-Migrate==4.1.0 --hash=sha256:24d8051af161782e0743af1b04a152d007bad9772b2bca67b7ec1e8ceeb3910d
+python-dotenv==1.0.1 --hash=sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a

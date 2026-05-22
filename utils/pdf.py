@@ -1,11 +1,16 @@
 """PDF report generation using ReportLab."""
+from io import BytesIO
+from typing import Any
+
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from io import BytesIO
 
-def build_scan_pdf(scan, user):
+from models import Scan, User
+
+
+def build_scan_pdf(scan: Scan, user: User) -> BytesIO:
     buf = BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, title="WTI Scan Report")
     styles = getSampleStyleSheet()

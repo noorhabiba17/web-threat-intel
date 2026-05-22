@@ -1,10 +1,12 @@
 import re
+from typing import Any
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Optional
 
 PWD_RE = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$")
-def strong_pw(form, field):
+
+def strong_pw(form: FlaskForm, field: Any) -> None:
     if not PWD_RE.match(field.data or ""):
         raise ValidationError("Password must be 8+ chars with uppercase, lowercase, digit and symbol.")
 
