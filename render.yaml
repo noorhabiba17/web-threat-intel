@@ -1,0 +1,26 @@
+# Render one-click deploy manifest
+# IMPORTANT: do NOT store secrets in this file. Set them in Render's dashboard after creating the service.
+
+services:
+  - type: web
+    name: web-threat-intel
+    env: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "app:create_app()" --bind 0.0.0.0:$PORT
+    autoDeploy: true
+    instanceType: starter
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        value: "" # set this in Render dashboard (do NOT commit)
+      - key: OPENROUTER_API_KEY
+        value: "" # set this in Render dashboard (do NOT commit)
+
+# Notes:
+# - After creating the service from this repo, open the service settings in Render
+#   and add SECRET_KEY and OPENROUTER_API_KEY as protected environment variables.
+# - If your default branch is not `main`, change `branch` above to your branch name.
+# - Consider adding a `healthCheckPath: /` and `startCommand` tuning if needed.
