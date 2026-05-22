@@ -2,7 +2,62 @@
 import re
 import random
 import math
+import os
+import json
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
+
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "liquid/lfm-2.5-1.2b-instruct:free")
+
+SYSTEM_PROMPT = """You are a cybersecurity expert assistant. Answer concisely and helpfully about:
+- Phishing, spam, social engineering
+- Password security, 2FA/MFA, OTP safety
+- Malware, ransomware, viruses
+- Safe browsing, HTTPS, VPNs, public Wi-Fi
+- Email security, mobile security
+- Account recovery, data breaches, identity theft
+- Privacy, cookies, ad blockers
+- IoT security, zero-day exploits, DDoS
+- General online safety tips
+
+Keep answers brief (2-4 paragraphs). Use markdown for formatting. If the question is not about cybersecurity, politely redirect."""
+
+
+def ask_openrouter(message: str) -> str | None:
+    """Call OpenRouter API. Returns None on failure (fallback to rule-based)."""
+    if not OPENROUTER_API_KEY:
+        logger.info("OpenRouter API key not set — falling back to rule-based chatbot")
+        return None
+    try:
+        import requests
+        logger.info("Calling OpenRouter model=%s", OPENROUTER_MODEL)
+        resp = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": OPENROUTER_MODEL,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": message},
+                ],
+                "max_tokens": 600,
+                "temperature": 0.7,
+            },
+            timeout=15,
+        )
+        if resp.ok:
+            logger.info("OpenRouter returned HTTP %s", resp.status_code)
+            return resp.json()["choices"][0]["message"]["content"].strip()
+        logger.warning("OpenRouter HTTP %s: %s", resp.status_code, resp.text[:200])
+    except Exception as exc:
+        logger.info("OpenRouter fallback (reason: %s)", exc)
+    return None
 
 STOPWORDS = {"a","an","the","is","are","was","were","do","does","did","can",
              "could","will","would","shall","should","may","might","must",
@@ -698,3 +753,11 @@ def reply(msg: str) -> str:
         "Good question! Let me help you with cybersecurity. Try: 'how to spot phishing', 'what is 2FA', 'how to create strong password', 'what to do if hacked', or 'safe browsing tips'.",
     ]
     return random.choice(fallbacks)
+
+
+def chatbot_reply(message: str) -> str:
+    """Try OpenRouter AI first, fall back to rule-based engine."""
+    ai_reply = ask_openrouter(message)
+    if ai_reply is not None:
+        return ai_reply
+    return reply(message)

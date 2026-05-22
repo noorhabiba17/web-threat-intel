@@ -17,7 +17,7 @@ from config import Config
 from models import db, User, Scan, ActivityLog, ChatMessage, PageView
 from forms import RegisterForm, LoginForm, ForgotForm, ScanForm
 from utils.detector import detector
-from utils.chatbot import reply as chatbot_reply
+from utils.chatbot import chatbot_reply
 from utils.pdf import build_scan_pdf
 
 logger = logging.getLogger(__name__)
@@ -67,10 +67,14 @@ def create_app() -> Flask:
             "style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; "
             "img-src 'self' data:; "
             "font-src 'self' https://cdn.jsdelivr.net; "
-            "connect-src 'self' http://127.0.0.1:4040; "
+            "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
             "frame-ancestors 'none';"
         )
         return response
+
+    @app.route("/favicon.ico")
+    def favicon():
+        return redirect(url_for("static", filename="img/favicon.svg"))
 
     # ── Track every page visit ──
     @app.before_request
