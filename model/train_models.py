@@ -15,8 +15,8 @@ import joblib
 logger = logging.getLogger(__name__)
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline  # noqa: F401  # kept for documentation
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import ComplementNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
@@ -76,16 +76,28 @@ SPAM_TXT = [
  "Free Netflix subscription forever! Visit http://netfli-x.tk",
 ]
 
+CLF_MAP = {
+    "lr": ("Logistic Regression", LogisticRegression(max_iter=1000, class_weight="balanced")),
+    "rf": ("Random Forest", RandomForestClassifier(n_estimators=120, max_depth=10, class_weight="balanced", random_state=42)),
+    "cnb": ("Complement Naive Bayes", ComplementNB()),
+}
+CLF_ORDER = ["lr", "rf", "cnb"]
+
+
 def train_pair(X: list[str], y: list[int], name: str) -> None:
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
     vec = TfidfVectorizer(ngram_range=(1, 3), min_df=1, sublinear_tf=True, analyzer="char_wb" if name == "url" else "word")
     Xtr_v = vec.fit_transform(Xtr)
     Xte_v = vec.transform(Xte)
-    lr = LogisticRegression(max_iter=1000, class_weight="balanced").fit(Xtr_v, ytr)
-    nb = MultinomialNB().fit(Xtr_v, ytr)
-    logger.info("%s] LR acc=%.3f  NB acc=%.3f", name, accuracy_score(yte, lr.predict(Xte_v)), accuracy_score(yte, nb.predict(Xte_v)))
+    accs = []
+    for key in CLF_ORDER:
+        label, clf = CLF_MAP[key]
+        clf.fit(Xtr_v, ytr)
+        acc = accuracy_score(yte, clf.predict(Xte_v))
+        accs.append(f"{label}={acc:.3f}")
+        joblib.dump(clf, os.path.join(HERE, f"{name}_{key}.pkl"))
     joblib.dump(vec, os.path.join(HERE, f"{name}_vec.pkl"))
-    joblib.dump(lr, os.path.join(HERE, f"{name}_clf.pkl"))
+    logger.info("%s] %s", name, "  ".join(accs))
 
 
 def main() -> None:

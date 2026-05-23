@@ -19,6 +19,9 @@ SUSPICIOUS_KW: list[str] = ["login", "verify", "update", "secure", "account", "b
 SPAM_KW: list[str] = ["winner", "congratulations", "lottery", "claim", "prize", "free", "urgent", "limited offer", "click here", "act now", "risk-free", "cash", "credit", "loan", "viagra", "crypto", "investment", "guaranteed", "cheap", "earn money", "work from home", "subscribe", "unsubscribe"]
 PHISH_PHRASES: list[str] = ["verify your account", "update your password", "suspended", "unusual activity", "confirm your identity", "tax refund", "reset your password"]
 
+CLF_KEYS = ["lr", "rf", "cnb"]
+CLF_LABELS = {"lr": "Logistic Regression", "rf": "Random Forest", "cnb": "Complement Naive Bayes"}
+
 
 def _safe_load(name: str) -> Any:
     p = os.path.join(MODEL_DIR, name)
@@ -28,9 +31,45 @@ def _safe_load(name: str) -> Any:
 class Detector:
     def __init__(self) -> None:
         self.url_vec: Any = _safe_load("url_vec.pkl")
-        self.url_clf: Any = _safe_load("url_clf.pkl")
         self.txt_vec: Any = _safe_load("txt_vec.pkl")
-        self.txt_clf: Any = _safe_load("txt_clf.pkl")
+        self.url_clfs: dict[str, Any] = {k: _safe_load(f"url_{k}.pkl") for k in CLF_KEYS}
+        self.txt_clfs: dict[str, Any] = {k: _safe_load(f"txt_{k}.pkl") for k in CLF_KEYS}
+
+    def _ml_predict(self, text: str, vec: Any, clfs: dict[str, Any]) -> list[dict[str, Any]]:
+        results = []
+        if vec is None:
+            return results
+        X = vec.transform([text])
+        for key in CLF_KEYS:
+            clf = clfs.get(key)
+            if clf is None:
+                continue
+            try:
+                proba = float(clf.predict_proba(X)[0][1])
+            except Exception:
+                proba = 0.0
+            risk = round(proba * 100.0, 1)
+            results.append({
+                "key": key,
+                "label": CLF_LABELS[key],
+                "prob": round(proba, 4),
+                "risk": risk,
+                "verdict": "Safe" if risk < 30 else ("Medium" if risk < 60 else "High Risk"),
+            })
+        return results
+
+    def _pick_best(self, ml_results: list[dict[str, Any]]) -> str:
+        if not ml_results:
+            return "Heuristic"
+        counts = {}
+        for r in ml_results:
+            counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
+        max_votes = max(counts.values())
+        top = [v for v, c in counts.items() if c == max_votes]
+        if len(top) == 1:
+            return top[0]
+        tied = [r for r in ml_results if r["verdict"] in top]
+        return max(tied, key=lambda x: x["prob"])["verdict"]
 
     # ---------- URL ----------
     def url_features(self, url: str) -> tuple[float, list[str]]:
@@ -82,16 +121,14 @@ class Detector:
 
     def predict_url(self, url: str) -> dict[str, Any]:
         h_score, reasons = self.url_features(url)
-        ml_score = 0.0
-        if self.url_vec and self.url_clf:
-            try:
-                proba = self.url_clf.predict_proba(self.url_vec.transform([url]))[0][1]
-                ml_score = float(proba) * 60.0
-                reasons.append(f"ML phishing probability: {proba * 100:.1f}%")
-            except Exception:
-                pass
-        risk = min(100.0, h_score + ml_score)
-        return self._verdict(risk, reasons, kind="url")
+        ml_results = self._ml_predict(url, self.url_vec, self.url_clfs)
+        ml_max = max([r["risk"] for r in ml_results]) if ml_results else 0.0
+        if ml_results:
+            best = max(ml_results, key=lambda x: x["prob"])
+            reasons.append(f"Best ML model: {best['label']} ({best['prob']*100:.1f}% confidence)")
+        risk = min(100.0, h_score + ml_max)
+        verdict = self._pick_best(ml_results) if ml_results else "Safe"
+        return self._build_result(risk, verdict, reasons, ml_results, kind="url")
 
     # ---------- Text (email/sms) ----------
     def text_features(self, text: str) -> tuple[float, list[str]]:
@@ -131,33 +168,31 @@ class Detector:
 
     def predict_text(self, text: str, kind: str) -> dict[str, Any]:
         h_score, reasons = self.text_features(text)
-        ml_score = 0.0
-        if self.txt_vec and self.txt_clf:
-            try:
-                proba = self.txt_clf.predict_proba(self.txt_vec.transform([text]))[0][1]
-                ml_score = float(proba) * 55.0
-                reasons.append(f"ML spam probability: {proba * 100:.1f}%")
-            except Exception:
-                pass
-        risk = min(100.0, h_score + ml_score)
-        return self._verdict(risk, reasons, kind=kind)
+        ml_results = self._ml_predict(text, self.txt_vec, self.txt_clfs)
+        ml_max = max([r["risk"] for r in ml_results]) if ml_results else 0.0
+        if ml_results:
+            best = max(ml_results, key=lambda x: x["prob"])
+            reasons.append(f"Best ML model: {best['label']} ({best['prob']*100:.1f}% confidence)")
+        risk = min(100.0, h_score + ml_max)
+        verdict = self._pick_best(ml_results) if ml_results else "Safe"
+        return self._build_result(risk, verdict, reasons, ml_results, kind=kind)
 
-    # ---------- Verdict ----------
-    def _verdict(self, risk: float, reasons: list[str], kind: str) -> dict[str, Any]:
+    # ---------- Build result ----------
+    def _build_result(self, risk: float, verdict: str, reasons: list[str], ml_results: list[dict[str, Any]], kind: str) -> dict[str, Any]:
         if risk < 30:
-            verdict, suggestions = "Safe", [
+            suggestions = [
                 "Looks clean, but always stay alert.",
                 "Never share OTPs or passwords.",
                 "Bookmark trusted sites instead of clicking links.",
             ]
         elif risk < 60:
-            verdict, suggestions = "Medium", [
+            suggestions = [
                 "Treat with caution — verify the sender via another channel.",
                 "Hover over links before clicking.",
                 "Do not enter credentials unless you are sure of the site.",
             ]
         else:
-            verdict, suggestions = "High Risk", [
+            suggestions = [
                 "Do NOT click any links or download attachments.",
                 "Report the message to your IT/security team or provider.",
                 "If you already interacted, visit the Recovery Center immediately.",
@@ -165,7 +200,19 @@ class Detector:
             ]
         if not reasons:
             reasons = ["No strong indicators detected."]
-        return {"risk_score": round(risk, 1), "verdict": verdict, "reasons": reasons, "suggestions": suggestions, "kind": kind}
+        algos = {}
+        for r in ml_results:
+            algos[r["key"]] = {"label": r["label"], "risk": r["risk"], "verdict": r["verdict"], "prob": r["prob"]}
+        best_algo = max(ml_results, key=lambda x: x["prob"])["label"] if ml_results else "Heuristic"
+        return {
+            "risk_score": round(risk, 1),
+            "verdict": verdict,
+            "reasons": reasons,
+            "suggestions": suggestions,
+            "kind": kind,
+            "algorithms": algos,
+            "best_algorithm": best_algo,
+        }
 
 
 detector: Detector = Detector()
