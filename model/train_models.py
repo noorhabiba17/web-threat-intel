@@ -4,7 +4,10 @@ URL phishing and text spam detection. Uses a synthetic seed dataset so the
 project works out-of-the-box; replace SEED_* with real CSVs (e.g., PhishTank,
 SMS Spam Collection) for production-grade accuracy.
 """
-import os, random, json, logging
+import os
+import random
+import json
+import logging
 from typing import Any
 
 import joblib

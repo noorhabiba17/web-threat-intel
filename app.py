@@ -1,5 +1,6 @@
 """Web Threat Intelligence System — Flask entry point."""
-import os, json
+import os
+import json
 import logging
 from datetime import datetime
 from typing import Any, Optional
