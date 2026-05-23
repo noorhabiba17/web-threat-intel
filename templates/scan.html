@@ -39,7 +39,7 @@
     {% for key in ['lr','nb','rf','cnb'] %}
      {% set prob = result.algorithms['individual'].get(key, 0) %}
      <tr{% if key == best_key %} class="table-active"{% endif %}>
-      <td class="small">{{ labels.get(key, key) }}{% if key == best_key %} <i class="bi bi-star-fill text-warning" title="Best model"></i>{% endif %}</td>
+      <td class="small">{{ labels.get(key, key) }}{% if key == best_key %} <span class="badge text-bg-warning ms-1">★ Best</span>{% endif %}</td>
       <td class="small">{{ (prob * 100)|round(1) }}%</td>
       <td><span class="badge text-bg-{% if prob < 0.3 %}success{% elif prob < 0.6 %}warning{% else %}danger{% endif %}">{% if prob < 0.3 %}Safe{% elif prob < 0.6 %}Medium{% else %}Risky{% endif %}</span></td>
      </tr>

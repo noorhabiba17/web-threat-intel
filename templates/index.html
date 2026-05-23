@@ -1,23 +1,63 @@
 {% extends "base.html" %}{% block content %}
-<section class="hero text-center py-5">
+<section class="hero text-center py-5" data-step="1" data-intro="Welcome to WTI System! This AI-powered tool detects phishing, spam, and malicious URLs. Let me show you around." data-position="bottom">
  <span class="badge text-bg-info mb-3">AI-powered threat detection</span>
  <h1 class="display-4 fw-bold">Spot phishing & spam <span class="text-info">before it bites</span>.</h1>
  <p class="lead text-muted col-lg-8 mx-auto">Scan suspicious URLs, emails and SMS messages with a hybrid ML + rules engine. Get an instant risk score, clear reasons, and a recovery plan if you've already clicked.</p>
- <div class="mt-4 d-flex gap-2 justify-content-center">
+ <div class="mt-4 d-flex gap-2 justify-content-center" data-step="2" data-intro="Click 'Get started free' to create an account, or 'Sign in' if you already have one." data-position="bottom">
   <a href="{{ url_for('register') }}" class="btn btn-info btn-lg"><i class="bi bi-rocket-takeoff"></i> Get started free</a>
   <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Sign in</a>
  </div>
 </section>
-<section class="row g-4 mt-3">
+
+<div class="card wti-card p-4 my-5" data-step="3" data-intro="Here's a quick step-by-step guide to using the platform." data-position="top">
+ <h3 class="text-center mb-4"><i class="bi bi-signpost-2 text-info"></i> How to use — step by step</h3>
+ <div class="row g-3">
+  {% for n,ic,ti,tx in [
+   (1,'person-plus','Create Account','Sign up free or log in to start scanning.'),
+   (2,'link-45deg','Enter a URL or text','Paste a suspicious URL, email, or SMS into the scanner.'),
+   (3,'graph-up-arrow','Instant analysis','Our ML runs 4 algorithms & shows risk score, verdict, and the best model.'),
+   (4,'clock-history','Review history','All scans are saved — revisit any past result anytime.'),
+   (5,'shield-check','Recovery help','Get a guided checklist if you already clicked something harmful.')
+  ] %}
+  <div class="col-md-4 col-lg d-flex" data-step="{{ n+3 }}" data-intro="Step {{ n }}: {{ ti }} — {{ tx }}" data-position="bottom">
+   <div class="d-flex gap-3 align-items-start w-100">
+    <span class="badge bg-info text-dark rounded-circle fs-5 mt-1" style="min-width:32px;height:32px;line-height:1.4">{{n}}</span>
+    <div><h6 class="mb-1"><i class="bi bi-{{ic}} me-1 text-info"></i>{{ti}}</h6><p class="text-muted small mb-0">{{tx}}</p></div>
+   </div>
+  </div>
+  {% endfor %}
+ </div>
+</div>
+
+<section class="row g-4 mt-2" data-step="9" data-intro="The platform has three main features. Let's look at each one." data-position="top">
  {% for ic,ti,tx in [
   ('shield-shaded','URL Phishing','TF-IDF + LR model with 12+ heuristics: HTTPS, IPs, shorteners, punycode, lookalikes.'),
   ('envelope-exclamation','Email / SMS Spam','Naive Bayes + LR ensemble flags scams, OTP traps and embedded malicious links.'),
   ('clipboard2-pulse','Reports & Recovery','PDF reports, history search, and a guided recovery checklist if you already clicked.')
  ] %}
- <div class="col-md-4"><div class="card h-100 wti-card p-4">
+ <div class="col-md-4"><div class="card h-100 wti-card p-4" data-step="{{ loop.index+8 }}" data-intro="<b>{{ ti }}</b><br>{{ tx }}" data-position="bottom">
   <i class="bi bi-{{ic}} display-4 text-info"></i>
   <h4 class="mt-3">{{ti}}</h4><p class="text-muted">{{tx}}</p>
  </div></div>
  {% endfor %}
 </section>
+
+<div class="text-center mt-4">
+ <button class="btn btn-outline-info btn-lg" onclick="startTour()"><i class="bi bi-question-circle"></i> Guided Tour</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function startTour() {
+ introJs().setOptions({
+  showProgress: true,
+  showBullets: false,
+  exitOnOverlayClick: true,
+  doneLabel: 'Got it!',
+  nextLabel: 'Next →',
+  prevLabel: '← Back'
+ }).start();
+}
+</script>
 {% endblock %}

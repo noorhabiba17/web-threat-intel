@@ -54,7 +54,7 @@
     {% for key in ['lr','nb','rf','cnb'] %}
      {% if key in indiv %}
      <tr{% if key == best_key %} class="table-active"{% endif %}>
-      <td class="small">{{ labels.get(key, key) }}{% if key == best_key %} <i class="bi bi-star-fill text-warning" title="Best model"></i>{% endif %}</td>
+      <td class="small">{{ labels.get(key, key) }}{% if key == best_key %} <span class="badge text-bg-warning ms-1">★ Best</span>{% endif %}</td>
       <td class="small">{{ (indiv[key] * 100)|round(1) }}%</td>
       <td><span class="badge text-bg-{% if indiv[key] < 0.3 %}success{% elif indiv[key] < 0.6 %}warning{% else %}danger{% endif %}">{% if indiv[key] < 0.3 %}Safe{% elif indiv[key] < 0.6 %}Medium{% else %}Risky{% endif %}</span></td>
      </tr>
