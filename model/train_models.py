@@ -89,6 +89,14 @@ SPAM_TXT = [
     "Free Netflix subscription forever! Visit http://netfli-x.tk",
 ]
 
+CLF_MAP = {
+    "lr": ("Logistic Regression", LogisticRegression(max_iter=1000, class_weight="balanced")),
+    "nb": ("Multinomial Naive Bayes", MultinomialNB()),
+    "rf": ("Random Forest", RandomForestClassifier(n_estimators=100, class_weight="balanced", random_state=42)),
+    "cnb": ("Complement Naive Bayes", ComplementNB()),
+}
+CLF_ORDER = ["lr", "nb", "rf", "cnb"]
+
 SAFE_EMAILS = [
     "Hi John, please find the quarterly report attached. Let me know if you have questions.",
     "Your meeting invite for tomorrow at 2 PM has been confirmed.",
@@ -131,30 +139,20 @@ PHISH_EMAILS = [
 
 
 def train_pair(X: list[str], y: list[int], name: str) -> dict[str, float]:
-    """Train 4 classifiers, save each, return {name: accuracy}."""
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
     vec = TfidfVectorizer(ngram_range=(1, 3), min_df=1, sublinear_tf=True, analyzer="char_wb" if name == "url" else "word")
     Xtr_v = vec.fit_transform(Xtr)
     Xte_v = vec.transform(Xte)
-
-    models: dict[str, Any] = {
-        "lr": LogisticRegression(max_iter=1000, class_weight="balanced"),
-        "nb": MultinomialNB(),
-        "rf": RandomForestClassifier(n_estimators=100, class_weight="balanced", random_state=42),
-        "cnb": ComplementNB(),
-    }
-
-    accuracies: dict[str, float] = {}
-    for suffix, clf in models.items():
+    accs: dict[str, float] = {}
+    for key in CLF_ORDER:
+        label, clf = CLF_MAP[key]
         clf.fit(Xtr_v, ytr)
         acc = accuracy_score(yte, clf.predict(Xte_v))
-        accuracies[suffix] = round(acc, 4)
-        joblib.dump(clf, os.path.join(HERE, f"{name}_{suffix}.pkl"))
-        logger.info("  %s_%s: accuracy = %.4f", name, suffix, acc)
-
+        accs[key] = round(acc, 4)
+        joblib.dump(clf, os.path.join(HERE, f"{name}_{key}.pkl"))
     joblib.dump(vec, os.path.join(HERE, f"{name}_vec.pkl"))
-    logger.info("  %s_vec saved", name)
-    return accuracies
+    logger.info("%s] %s", name, "  ".join(f"{k}={v:.3f}" for k, v in accs.items()))
+    return accs
 
 
 def main() -> None:
