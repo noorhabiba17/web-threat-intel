@@ -27,27 +27,30 @@
     <h6 class="mt-2"><i class="bi bi-shield-check"></i> Suggestions</h6>
     <ul>{% for r in result.suggestions %}<li>{{ r }}</li>{% endfor %}</ul>
   </div>
-  {% if result.algorithms and result.algorithms|length > 0 %}
+  {% if result.algorithms and result.algorithms.get('individual') %}
   <div class="card wti-card p-4">
-   <h5 class="mb-3"><i class="bi bi-cpu"></i> Algorithm Comparison</h5>
-   <p class="text-muted small mb-3">Best model: <strong class="text-info">{{ result.best_algorithm }}</strong></p>
-   {% set algo_order = ['lr','rf','cnb'] %}
-   {% for key in algo_order %}
-    {% set a = result.algorithms.get(key) %}
-    {% if a %}
-    <div class="border rounded p-3 mb-2 {% if a.label == result.best_algorithm %}border-info{% endif %}">
-     <div class="d-flex justify-content-between align-items-center">
-      <strong>{{ a.label }}</strong>
-      <span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[a.verdict] }}">{{ a.verdict }}</span>
-     </div>
-     <div class="d-flex justify-content-between small text-muted mt-1">
-      <span>Risk: {{ a.risk }} / 100</span>
-      <span>Confidence: {{ (a.prob * 100)|round(1) }}%</span>
-     </div>
-     <div class="progress mt-1" style="height:6px"><div class="progress-bar bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[a.verdict] }}" style="width:{{ a.risk }}%"></div></div>
-    </div>
-    {% endif %}
-   {% endfor %}
+   <h5 class="mb-3"><i class="bi bi-cpu text-info"></i> Algorithm Comparison</h5>
+   <p class="small text-muted">Each ML algorithm predicts independently. The ensemble average determines the final verdict.</p>
+   {% set labels = {'lr':'Logistic Regression','nb':'Multinomial NB','rf':'Random Forest','cnb':'Complement NB'} %}
+   {% set best_key = result.algorithms.get('best', '') %}
+   <table class="table table-dark table-sm mb-0">
+    <thead><tr><th>Algorithm</th><th>Phishing Prob.</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for key in ['lr','nb','rf','cnb'] %}
+     {% set prob = result.algorithms['individual'].get(key, 0) %}
+     <tr{% if key == best_key %} class="table-active"{% endif %}>
+      <td class="small">{{ labels.get(key, key) }}{% if key == best_key %} <i class="bi bi-star-fill text-warning" title="Best model"></i>{% endif %}</td>
+      <td class="small">{{ (prob * 100)|round(1) }}%</td>
+      <td><span class="badge text-bg-{% if prob < 0.3 %}success{% elif prob < 0.6 %}warning{% else %}danger{% endif %}">{% if prob < 0.3 %}Safe{% elif prob < 0.6 %}Medium{% else %}Risky{% endif %}</span></td>
+     </tr>
+    {% endfor %}
+    <tr class="table-info">
+     <td><strong>Ensemble Avg</strong></td>
+     <td><strong>{{ (result.algorithms.get('avg_prob', 0) * 100)|round(1) }}%</strong></td>
+     <td><span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[result.verdict] }}">{{ result.verdict }}</span></td>
+    </tr>
+    </tbody>
+   </table>
   </div>
   {% endif %}
   {% else %}

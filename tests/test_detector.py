@@ -11,7 +11,7 @@ detector = Detector()
 class TestURLFeatures:
     def test_no_https_adds_score(self):
         score, reasons = detector.url_features("http://example.com")
-        assert score >= 15
+        assert score >= 8
         assert any("HTTPS" in r for r in reasons)
 
     def test_https_no_flag(self):

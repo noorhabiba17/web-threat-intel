@@ -3,8 +3,8 @@
  <h2><i class="bi bi-search text-info"></i> Scan Details</h2>
  <a href="{{ url_for('history') }}" class="btn btn-outline-info btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
 </div>
-{% set algo_data = scan.model_details|fromjson if scan.model_details else {} %}
-{% set best_algo = algo_data.values()|selectattr('verdict')|list %}
+{% set ad = scan.model_details|fromjson if scan.model_details else {} %}
+{% set indiv = ad.get('individual', {}) if ad else {} %}
 <div class="row g-3">
  <div class="col-lg-7">
   <div class="card wti-card p-4">
@@ -33,7 +33,7 @@
   <div class="card wti-card p-4 mb-3">
    <h6><i class="bi bi-list-check text-info"></i> Why we flagged this</h6>
    {% if scan.reasons %}
-   <ul>{% for r in scan.reasons.split('\n') %}<li>{{ r }}</li>{% endfor %}</ul>
+   <ul>{% for r in scan.reasons.split('\n') %}{% if 'LR' not in r and 'NB' not in r and 'RF' not in r and 'CNB' not in r and 'Best model' not in r %}<li>{{ r }}</li>{% endif %}{% endfor %}</ul>
    {% else %}<p class="text-muted small">No specific indicators.</p>{% endif %}
   </div>
   <div class="card wti-card p-4 mb-3">
@@ -42,25 +42,31 @@
    <ul>{% for r in scan.suggestions.split('\n') %}<li>{{ r }}</li>{% endfor %}</ul>
    {% else %}<p class="text-muted small">No suggestions.</p>{% endif %}
   </div>
-  {% if algo_data and algo_data|length > 0 %}
+  {% if indiv and indiv|length > 0 %}
   <div class="card wti-card p-4">
    <h6><i class="bi bi-cpu text-info"></i> Algorithm Comparison</h6>
-   {% set algo_order = ['lr','rf','cnb'] %}
-   {% for key in algo_order %}
-    {% set a = algo_data.get(key) %}
-    {% if a %}
-    <div class="border rounded p-2 mb-2 small">
-     <div class="d-flex justify-content-between align-items-center">
-      <strong>{{ a.label }}</strong>
-      <span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[a.verdict] }}">{{ a.verdict }}</span>
-     </div>
-     <div class="d-flex justify-content-between text-muted mt-1">
-      <span>Risk: {{ a.risk }} / 100</span>
-      <span>Confidence: {{ (a.prob * 100)|round(1) }}%</span>
-     </div>
-    </div>
-    {% endif %}
-   {% endfor %}
+   <p class="small text-muted">Each ML algorithm gives its own risk probability. The ensemble averages them for the final score.</p>
+   {% set labels = {'lr':'Logistic Regression','nb':'Multinomial NB','rf':'Random Forest','cnb':'Complement NB'} %}
+   {% set best_key = ad.get('best', '') %}
+   <table class="table table-dark table-sm mb-0">
+    <thead><tr><th>Algorithm</th><th>Phishing Prob.</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for key in ['lr','nb','rf','cnb'] %}
+     {% if key in indiv %}
+     <tr{% if key == best_key %} class="table-active"{% endif %}>
+      <td class="small">{{ labels.get(key, key) }}{% if key == best_key %} <i class="bi bi-star-fill text-warning" title="Best model"></i>{% endif %}</td>
+      <td class="small">{{ (indiv[key] * 100)|round(1) }}%</td>
+      <td><span class="badge text-bg-{% if indiv[key] < 0.3 %}success{% elif indiv[key] < 0.6 %}warning{% else %}danger{% endif %}">{% if indiv[key] < 0.3 %}Safe{% elif indiv[key] < 0.6 %}Medium{% else %}Risky{% endif %}</span></td>
+     </tr>
+     {% endif %}
+    {% endfor %}
+    <tr class="table-info">
+     <td><strong>Ensemble Avg</strong></td>
+     <td><strong>{{ (ad.get('avg_prob', 0) * 100)|round(1) }}%</strong></td>
+     <td><span class="badge text-bg-{{ {'Safe':'success','Medium':'warning','High Risk':'danger'}[scan.verdict] }}">{{ scan.verdict }}</span></td>
+    </tr>
+    </tbody>
+   </table>
   </div>
   {% endif %}
  </div>
