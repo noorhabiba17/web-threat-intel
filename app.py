@@ -379,6 +379,18 @@ def create_app() -> Flask:
         )
 
     with app.app_context():
+        import socket, time
+        db_host = "ep-wild-lake-aozilfkb.c-2.ap-southeast-1.aws.neon.tech"
+        for attempt in range(6):
+            try:
+                socket.gethostbyname(db_host)
+                break
+            except OSError:
+                if attempt < 5:
+                    app.logger.warning("DNS resolve failed for Neon DB, retrying in 5s... (attempt %d/6)", attempt+2)
+                    time.sleep(5)
+                else:
+                    app.logger.warning("Could not resolve Neon DB host after 6 attempts — check internet/DNS")
         db.create_all()
         from model.train_models import main as train_main
         need = not all(os.path.exists(os.path.join("model", f)) for f in

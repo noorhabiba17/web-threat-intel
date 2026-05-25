@@ -1,56 +1,15 @@
 {% extends "base.html" %}{% block content %}
-<!-- ===== SECTION 1 — HERO ===== -->
-<section class="hero text-center py-5" data-step="1" data-intro="Welcome to WTI System! This AI-powered tool detects phishing, spam, and malicious URLs. Let me show you around." data-position="bottom">
+<section class="hero text-center py-5">
  <span class="badge text-bg-info mb-3">AI-powered threat detection</span>
  <h1 class="display-4 fw-bold">Spot phishing &amp; spam <span class="text-info">before it bites</span>.</h1>
  <p class="lead text-muted col-lg-8 mx-auto">Scan suspicious URLs, emails and SMS messages with a hybrid ML + rules engine. Get an instant risk score, clear reasons, and a recovery plan if you've already clicked.</p>
- <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap" data-step="2" data-intro="Click 'Get started free' to create an account, or 'Sign in' if you already have one." data-position="bottom">
+ <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
   <a href="{{ url_for('register') }}" class="btn btn-info btn-lg px-4"><i class="bi bi-rocket-takeoff"></i> Get started free</a>
   <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4">Sign in</a>
  </div>
- <div class="d-flex gap-4 justify-content-center mt-5 text-center">
-  <div><span class="fs-3 fw-bold text-info counter" data-target="15000">0</span><p class="small text-muted mb-0">Scans processed</p></div>
-  <div class="vr opacity-25"></div>
-  <div><span class="fs-3 fw-bold text-success counter" data-target="4200">0</span><p class="small text-muted mb-0">Threats blocked</p></div>
-  <div class="vr opacity-25"></div>
-  <div><span class="fs-3 fw-bold text-warning counter" data-target="99">0</span><p class="small text-muted mb-0">% Detection rate</p></div>
- </div>
 </section>
 
-<!-- ===== SECTION 2 — PLATFORM STATS (mini cards) ===== -->
-<section class="row g-3 mb-5" data-step="3" data-intro="Our platform processes thousands of scans with high accuracy." data-position="top">
- <div class="col-6 col-md-3">
-  <div class="wti-card p-3 text-center">
-   <div class="stat-ico bg-info-subtle mx-auto mb-2"><i class="bi bi-shield-check text-info"></i></div>
-   <h4 class="fw-bold mb-0 text-info counter" data-target="12500">0</h4>
-   <small class="text-muted">URLs analyzed</small>
-  </div>
- </div>
- <div class="col-6 col-md-3">
-  <div class="wti-card p-3 text-center">
-   <div class="stat-ico bg-success-subtle mx-auto mb-2"><i class="bi bi-envelope-check text-success"></i></div>
-   <h4 class="fw-bold mb-0 text-success counter" data-target="3800">0</h4>
-   <small class="text-muted">Emails scanned</small>
-  </div>
- </div>
- <div class="col-6 col-md-3">
-  <div class="wti-card p-3 text-center">
-   <div class="stat-ico bg-warning-subtle mx-auto mb-2"><i class="bi bi-chat-dots text-warning"></i></div>
-   <h4 class="fw-bold mb-0 text-warning counter" data-target="920">0</h4>
-   <small class="text-muted">SMS checked</small>
-  </div>
- </div>
- <div class="col-6 col-md-3">
-  <div class="wti-card p-3 text-center">
-   <div class="stat-ico bg-danger-subtle mx-auto mb-2"><i class="bi bi-people text-danger"></i></div>
-   <h4 class="fw-bold mb-0 text-danger counter" data-target="580">0</h4>
-   <small class="text-muted">Active users</small>
-  </div>
- </div>
-</section>
-
-<!-- ===== SECTION 3 — HOW IT WORKS (redesigned timeline) ===== -->
-<section class="mb-5" data-step="4" data-intro="Here's how the platform works from start to finish." data-position="top">
+<section class="mb-5">
  <h2 class="text-center mb-5"><i class="bi bi-signpost-2 text-info"></i> How it <span class="text-info">works</span></h2>
  <div class="timeline-wrapper position-relative">
   <div class="timeline-line"></div>
@@ -63,7 +22,7 @@
     (5,'clock-history','Full scan history','Every result is saved — revisit past scans anytime from your dashboard.'),
     (6,'shield-check','Recovery checklist','Already clicked something harmful? Get a guided recovery plan.')
    ] %}
-   <div class="col-md-6 col-lg-4 timeline-item" data-step="{{ n+4 }}" data-intro="<b>Step {{ n }}:</b> {{ ti }}">
+   <div class="col-md-6 col-lg-4 timeline-item">
     <div class="wti-card p-3 h-100 d-flex gap-3 align-items-start position-relative">
      <div class="timeline-dot">{{ n }}</div>
      <div>
@@ -77,23 +36,21 @@
  </div>
 </section>
 
-<!-- ===== SECTION 4 — FEATURES ===== -->
-<section class="row g-4 mt-3 mb-5" data-step="11" data-intro="Three core features that protect you." data-position="top">
+<section class="row g-4 mt-3 mb-5">
  <h2 class="text-center mb-4">Core <span class="text-info">capabilities</span></h2>
  {% for ic,ti,tx in [
   ('shield-shaded','URL Phishing Detection','TF-IDF + LR model with 12+ heuristics: HTTPS, IPs, shorteners, punycode, lookalikes.'),
   ('envelope-exclamation','Email / SMS Spam','Naive Bayes + LR ensemble flags scams, OTP traps and embedded malicious links.'),
   ('clipboard2-pulse','Reports &amp; Recovery','PDF reports, history search, and a guided recovery checklist if you already clicked.')
  ] %}
- <div class="col-md-4"><div class="card h-100 wti-card p-4 text-center" data-step="{{ loop.index+11 }}" data-intro="<b>{{ ti }}</b><br>{{ tx }}" data-position="bottom">
+ <div class="col-md-4"><div class="card h-100 wti-card p-4 text-center">
   <div class="stat-ico bg-info-subtle mx-auto mb-3"><i class="bi bi-{{ic}} fs-3 text-info"></i></div>
   <h4>{{ti}}</h4><p class="text-muted">{{tx}}</p>
  </div></div>
  {% endfor %}
 </section>
 
-<!-- ===== SECTION 5 — WHY CHOOSE US ===== -->
-<section class="mb-5" data-step="15" data-intro="What makes our platform different." data-position="top">
+<section class="mb-5">
  <h2 class="text-center mb-5">Why <span class="text-info">WTI System</span>?</h2>
  <div class="row g-4">
   {% for ic,ti,tx in [
@@ -114,8 +71,7 @@
  </div>
 </section>
 
-<!-- ===== SECTION 6 — TRUST INDICATORS / TECH STACK ===== -->
-<section class="wti-card p-5 mb-5 text-center" data-step="16" data-intro="Our technology stack keeps you safe." data-position="top">
+<section class="wti-card p-5 mb-5 text-center">
  <h3 class="mb-4">Built with <span class="text-info">trust</span> at every layer</h3>
  <div class="row g-3 justify-content-center">
   <div class="col-6 col-md-2"><div class="p-3 rounded-3" style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.08);"><i class="bi bi-filetype-py fs-2 text-info"></i><br><small class="text-muted">Python + Flask</small></div></div>
@@ -127,8 +83,7 @@
  </div>
 </section>
 
-<!-- ===== SECTION 7 — FINAL CTA ===== -->
-<section class="text-center py-5" data-step="17" data-intro="Ready to protect yourself? Start now!" data-position="top">
+<section class="text-center py-5">
  <div class="wti-card p-5 position-relative overflow-hidden">
   <div style="position:absolute;top:-60%;left:-20%;width:140%;height:200%;background:radial-gradient(circle,rgba(0,212,255,0.04) 0%,transparent 70%);pointer-events:none;"></div>
   <h2 class="fw-bold mb-3">Start scanning <span class="text-info">today</span></h2>
@@ -139,42 +94,4 @@
   </div>
  </div>
 </section>
-
-<!-- Guided tour button -->
-<div class="text-center mt-4 mb-3">
- <button class="btn btn-outline-info btn-lg" onclick="startTour()"><i class="bi bi-question-circle"></i> Guided Tour</button>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-function startTour() {
- introJs().setOptions({
-  showProgress: true,
-  showBullets: false,
-  exitOnOverlayClick: true,
-  doneLabel: 'Got it!',
-  nextLabel: 'Next \u2192',
-  prevLabel: '\u2190 Back'
- }).start();
-}
-// Animated counter
-function animateCounters() {
- document.querySelectorAll('.counter').forEach(function(el) {
-  const target = parseInt(el.getAttribute('data-target'));
-  if (!target) return;
-  const duration = 2000;
-  const step = Math.ceil(target / (duration / 16));
-  let current = 0;
-  const update = function() {
-   current += step;
-   if (current >= target) { el.textContent = target.toLocaleString(); return; }
-   el.textContent = current.toLocaleString();
-   requestAnimationFrame(update);
-  };
-  update();
- });
-}
-document.addEventListener('DOMContentLoaded', animateCounters);
-</script>
 {% endblock %}

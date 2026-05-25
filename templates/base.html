@@ -5,13 +5,28 @@
 <title>{% block title %}Web Threat Intelligence{% endblock %}</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/themes/introjs-dark.css" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
+.splash-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#0b0f1a;flex-direction:column;transition:opacity .5s ease,visibility .5s ease}
+.splash-screen.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-inner{text-align:center;animation:splashIn .6s ease-out}
+@keyframes splashIn{0%{opacity:0;transform:scale(.7)}60%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+.splash-icon{font-size:5rem;color:#00d4ff;display:block;margin-bottom:.5rem;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.1)}}
+.splash-title{font-size:2.5rem;font-weight:800;color:#fff}
+.splash-sub{color:#94a3b8;font-size:1rem;margin-top:.25rem}
+</style>
 </head>
 <body>
+<div id="splash" class="splash-screen">
+ <div class="splash-inner">
+  <i class="bi bi-shield-lock-fill splash-icon"></i>
+  <div class="splash-title">WTI<span class="text-info">.</span>System</div>
+  <div class="splash-sub">Web Threat Intelligence</div>
+ </div>
+</div>
 <div id="bg-blob"></div>
 <nav class="navbar navbar-expand-lg sticky-top wti-nav">
  <div class="container-fluid">
@@ -63,7 +78,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <div class="modal fade" id="logoutModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -87,6 +101,14 @@ function confirmLogout(e) {
     e.preventDefault();
     var modal = new bootstrap.Modal(document.getElementById('logoutModal'));
     modal.show();
+}
+// Splash screen — once per session
+if (!sessionStorage.getItem('splashShown')) {
+    sessionStorage.setItem('splashShown', '1');
+    document.getElementById('splash').classList.remove('hide');
+    setTimeout(function(){ document.getElementById('splash').classList.add('hide'); }, 2500);
+} else {
+    document.getElementById('splash').classList.add('hide');
 }
 </script>
 {% block scripts %}{% endblock %}
